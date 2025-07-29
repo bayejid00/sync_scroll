@@ -10,9 +10,16 @@ function connectPort() {
     sync_scroll.connected = true;
 
     sync_scroll.port.onDisconnect.addListener(() => {
-        console.log('Port disconnected');
+        // console.log('Port disconnected');
         sync_scroll.connected = false;
         sync_scroll.port = null;
+        // Try to reconnect after a short delay
+        setTimeout(() => {
+            if (!sync_scroll.connected) {
+                // console.log('Attempting to reconnect port...');
+                connectPort();
+            }
+        }, 500);
     });
 
     sync_scroll.port.onMessage.addListener((msg) => {
@@ -23,7 +30,6 @@ function connectPort() {
         if (typeof msg.window_scrollY !== 'undefined' && sync_scroll.on) {
             const x = msg.window_scrollX;
             const y = msg.window_scrollY;
-            // console.log('tab receives scrollXY:', x, y);
             window.scrollTo(x, y);
         }
     });
@@ -32,11 +38,10 @@ function connectPort() {
 // Initial port connection
 connectPort();
 
-window.addEventListener('pageshow', (event) => {
-    // Reconnect port if coming back from bfcache
+window.addEventListener('pageshow', () => {
     if (!sync_scroll.connected) {
-        connectPort();
         console.log('Reconnected port after bfcache restore');
+        connectPort();
     }
 });
 
@@ -56,11 +61,9 @@ window.addEventListener('scroll', () => {
 });
 
 window.addEventListener('focus', () => {
-    console.log('tab onfocus');
     sync_scroll.focused = true;
 });
 
 window.addEventListener('blur', () => {
-    console.log('tab onblur');
     sync_scroll.focused = false;
 });
