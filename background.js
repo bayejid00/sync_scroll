@@ -50,9 +50,9 @@ chrome.runtime.onConnect.addListener((port) => {
         if (msg.window_scrollY !== undefined) {
             let x = msg.window_scrollX;
             let y = msg.window_scrollY;
-            // console.log('background receives scrollXY:' + x + ',' + y);
-            // Broadcast to all other connected tabs except sender
-            for (let id in ports) {
+            // only send to highlighted (active) tabs in each window
+            const targets = selectedTabIds(); // function already present below
+            for (let id of targets) {
                 if (id != tab_id && ports[id]) {
                     ports[id].postMessage(msg);
                     // console.log('background sends ' + x + ',' + y + ' to tabId:' + id);
