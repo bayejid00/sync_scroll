@@ -2,7 +2,7 @@
     port: null,
     focused: true,
     connected: false,
-    on: true // Track ON/OFF state
+    on: false // start OFF until background confirms current state
 };
 
 function connectPort() {
@@ -25,7 +25,7 @@ function connectPort() {
     sync_scroll.port.onMessage.addListener((msg) => {
         if (typeof msg.sync_on !== 'undefined') {
             sync_scroll.on = msg.sync_on;
-            console.log('Sync Scroll state updated:', sync_scroll.on ? 'ON' : 'OFF');
+            // console.log('Sync Scroll state updated:', sync_scroll.on ? 'ON' : 'OFF');
         }
         if (typeof msg.window_scrollY !== 'undefined' && sync_scroll.on) {
             const x = msg.window_scrollX;
@@ -40,13 +40,14 @@ connectPort();
 
 window.addEventListener('pageshow', () => {
     if (!sync_scroll.connected) {
-        console.log('Reconnected port after bfcache restore');
+        // console.log('Reconnected port after bfcache restore');
         connectPort();
     }
 });
 
 window.addEventListener('scroll', () => {
-    if (!sync_scroll.focused || !sync_scroll.connected || !sync_scroll.port || !sync_scroll.on) return;
+    // Only act when extension is ON and port is connected
+    if (!sync_scroll.on || !sync_scroll.connected || !sync_scroll.port || !sync_scroll.focused) return;
     const x = window.scrollX;
     const y = window.scrollY;
     // console.log('tab sends scrollXY:', x, y);
